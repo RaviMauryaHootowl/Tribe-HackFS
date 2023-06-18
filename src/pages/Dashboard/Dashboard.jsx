@@ -381,6 +381,19 @@ const ModalHeader = styled.span`
     text-align: center;
 `;
 
+const MembersListContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+`;
+
+const GiveawayMemberCard = styled.div`
+    background-color: #424242;
+    color: white;
+    padding: 0.6rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+`;
+
 const TextInputGroup = styled.div`
     background-color: #161616;
     color: white;
@@ -613,6 +626,7 @@ const Dashboard = () => {
 
     const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
     const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
+    const [isGiveawayModalOpen, setIsGiveawayModalOpen] = useState(false);
 
     const closeVoteModal = () => {
         setIsVoteModalOpen(false);
@@ -645,6 +659,14 @@ const Dashboard = () => {
 
     const openCreatePostModal = () => {
         setIsCreatePostModalOpen(true);
+    };
+
+    const closeGiveawayModal = () => {
+        setIsGiveawayModalOpen(false);
+    };
+
+    const openGiveawayModal = () => {
+        setIsGiveawayModalOpen(true);
     };
 
     // const onDrop = useCallback(
@@ -688,9 +710,11 @@ const Dashboard = () => {
 
     const fetchCreatorInfo = async (id) => {
         try {
+
             const res = await axios.get(
                 `${process.env.REACT_APP_API}/user/getCreatorInfo?walletAddress=${id}`
             );
+            console.log(res.data);
             setCreatorInfo(res.data);
         } catch (err) {
             console.log(err);
@@ -930,6 +954,17 @@ const Dashboard = () => {
         }
     };
 
+    const handleGiveawayNFT = async () => {
+        // fetch a winner
+        const winner = await getLuckyWinner(state.user.walletAddress);
+        console.log(winner);
+        const winnerEmailId = creatorInfo.members[winner].memberEmail;
+
+        // transfer NFT to the winner
+        toast.success(`The Winner is ${winnerEmailId}! Transferring custom NFT`);
+
+    }
+
     const createPushUser = async () => {
         const provider = new ethers.providers.JsonRpcProvider(process.env.REACT_APP_RPC_URL);
         const wallet = new ethers.Wallet(process.env.REACT_APP_PVTKEY);
@@ -1116,7 +1151,7 @@ const Dashboard = () => {
                 console.log(res.data);
                 setCreatorDetailsSaveLoading(false);
                 toast.success("Creator details saved! 🥳");
-                fetchCreatorInfo();
+                fetchCreatorInfo(state.user.walletAddress);
                 closeCreatorSetupModal();
             } catch (e) {
                 setCreatorDetailsSaveLoading(false);
@@ -1127,6 +1162,28 @@ const Dashboard = () => {
             alert("Fill all the details first");
         }
     };
+
+    const getLuckyWinner = async (id) => {
+        try {
+            const res = await fetch(
+                `${process.env.REACT_APP_API}/user/getCreatorInfo?walletAddress=${id}`
+            );
+            const data = await res.json();
+            let totalMembers = data.members.length;
+            const response = await fetch(
+                "https://api.drand.sh/8990e7a9aaed2ffed73dbd7092123d6f289930540d7651336225dc172e51b2ce/public/latest"
+            );
+            const jsonData = await response.json();
+            const randn = parseInt(jsonData.randomness, 16);
+            if(totalMembers === 0 ) totalMembers++;
+            console.log(randn % totalMembers);
+            return randn % totalMembers;
+            
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
 
     const savePost = async () => {
         if (isValid(cpCaption) && cpPic != null) {
@@ -1160,6 +1217,28 @@ const Dashboard = () => {
 
     return (
         <OuterFrameContainer>
+            <Modal
+                isOpen={isGiveawayModalOpen}
+                onRequestClose={closeGiveawayModal}
+                style={createProjectModalStyles}
+            >
+                <CreateProjModalContainer>
+                    <ModalHeader>NFT Giveaway</ModalHeader>
+                    <MembersListContainer>
+                        {
+                            creatorInfo.members && creatorInfo.members.map((member) => {
+                                return <GiveawayMemberCard>
+                                    {member.memberEmail}
+                                </GiveawayMemberCard>
+                            })
+                        }
+                    </MembersListContainer>
+                    <CreateProjModalBottom>
+
+                        <BecomeMemberBtn onClick={handleGiveawayNFT}>Pick Winner</BecomeMemberBtn>
+                    </CreateProjModalBottom>
+                </CreateProjModalContainer>
+            </Modal>
             <Modal
                 isOpen={isVoteModalOpen}
                 onRequestClose={closeVoteModal}
@@ -1475,6 +1554,12 @@ const Dashboard = () => {
                                 )}
                             </ActionButtonIcon>
                             Close Votes & Transfer
+                        </ActionButton>
+                        <ActionButton onClick={openGiveawayModal}>
+                            <ActionButtonIcon>
+                                <TaskAltRounded fontSize="large" />
+                            </ActionButtonIcon>
+                            Giveaway NFT
                         </ActionButton>
                     </ActionButtonsList>
                 </FeedContainer>

@@ -15,6 +15,7 @@ import CryptsPage from "./pages/CryptsPage/CryptsPage";
 import LandingPage from "./pages/LandingPage/LandingPage";
 import Chats from "./pages/Chats/Chats";
 import VideoCall from "./pages/Chats/VideoCall";
+import PushVideoCall from "./pages/Chats/PushVideoCall";
 
 const App = () => {
     const router = createBrowserRouter([
@@ -64,7 +65,7 @@ const App = () => {
         },
         {
           path: "/videoCall/:id",
-          element: <VideoCall />
+          element: <PushVideoCall />
         },
     ]);
 

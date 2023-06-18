@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import cover from "../../images/cover.png";
+import nftimage from "../../images/nftimage.png";
+import customnft from "../../images/customnft.jpg";
 import { StoreContext } from "../../utils/Store";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
@@ -751,16 +753,21 @@ const CryptsPage = () => {
                         <SectionHeader>NFTs</SectionHeader>
                         <CreatorsListGrid>
                         {isSubsLoading && <WhiteLoader label={"Loading..."}/>}
-                    
+                        <NFTCard
+                                        >
+                                    <NFTCardImage
+                                        src={
+                                            customnft
+                                        }
+                                        />
+                                </NFTCard>
                         {nftList.map((nft, index) => {
                             return (
                                 <NFTCard
                                         >
                                     <NFTCardImage
                                         src={
-                                            nft.image != ""
-                                            ? nft.image
-                                            : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png"
+                                            nftimage
                                         }
                                         />
                                 </NFTCard>
